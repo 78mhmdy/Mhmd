@@ -56,3 +56,18 @@ async def main():
 # Run the bot
 client.loop.run_until_complete(main())
 
+from aiohttp import web
+
+async def handle(request):
+    return web.Response(text="Bot is running!")
+
+app = web.Application()
+app.router.add_get("/", handle)
+
+if __name__ == "__main__":
+    import asyncio
+    loop = asyncio.get_event_loop()
+    loop.create_task(bot.polling())  # تشغيل البوت
+    web.run_app(app, port=10000)  # تشغيل سيرفر ويب
+
+web.run_app()
