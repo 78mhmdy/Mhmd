@@ -71,3 +71,17 @@ if __name__ == "__main__":
     web.run_app(app, port=10000)  # تشغيل سيرفر ويب
 
 web.run_app()
+
+import os
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route("/")
+def index():
+    return "Bot is running!"
+
+if __name__ == "__main__":
+    # الحصول على رقم المنفذ من متغير البيئة، وإذا لم يكن موجودًا نستخدم 5000
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
