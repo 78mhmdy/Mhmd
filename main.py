@@ -1,87 +1,36 @@
-from telethon import TelegramClient, events
-import asyncio
-import telebot_bot
-import keep_alive
-from keep_alive import keep_alive
-
-keep_alive()
-
-# Replace these with your values from https://my.telegram.org/apps
-API_ID = '25140031'
-API_HASH = 'a9308e99598c9eee9889a1badf2ddd2f'
-PHONE_NUMBER = '+971569803058'
-
-# Channel usernames (with or without @)
-SOURCE_CHANNEL = '@mahmood2794'
-TARGET_CHANNEL = '@mhmd2704'
-
-# Initialize the client
-client = TelegramClient('session_name', API_ID, API_HASH)
-
-# Specify the word to remove from messages
-WORD_TO_REMOVE = "@Cointelegraph"  # Change this to the word you want to filter out
-
-async def send_code():
-    try:
-        print("Sending code...")
-        await client.send_code_request(PHONE_NUMBER)
-        code = input('Enter the code you received: ')
-        await client.sign_in(PHONE_NUMBER, code)
-    except Exception as e:
-        print(f"Error during login: {e}")
-
-@client.on(events.NewMessage(chats=SOURCE_CHANNEL))
-async def send_message(event):
-    try:
-        # Modify the message by removing the specified word
-        modified_message = event.message.text.replace(WORD_TO_REMOVE, "")
-        await client.send_message(TARGET_CHANNEL, modified_message)
-        print(f"Sent message: {modified_message[:50]}...")
-    except Exception as e:
-        print(f"Error sending message: {e}")
-
-async def main():
-    # Start the client
-    await client.start()
-
-    # If not logged in, send code
-    if not await client.is_user_authorized():
-        await send_code()
-
-    print("Bot is running...")
-
-    # Keep the bot running
-    await client.run_until_disconnected()
-
-# Run the bot
-client.loop.run_until_complete(main())
-
-from aiohttp import web
-
-async def handle(request):
-    return web.Response(text="Bot is running!")
-
-app = web.Application()
-app.router.add_get("/", handle)
-
-if __name__ == "__main__":
-    import asyncio
-    loop = asyncio.get_event_loop()
-    loop.create_task(bot.polling())  # تشغيل البوت
-    web.run_app(app, port=10000)  # تشغيل سيرفر ويب
-
-web.run_app()
-
+from flask import Flask, request
+import telebot
 import os
-from flask import Flask
+
+TOKEN = "7511938455:AAE99I9njQWTe7NIe9vqEIgiWB9f_Z8KnR0"  # ضع توكن البوت هنا
+bot = telebot.TeleBot(TOKEN)
+
+SOURCE_CHANNEL = -1002467389309  # ضع ID القناة المصدر (يجب أن يكون بصيغة عددية)
+TARGET_CHANNEL = -1002375010266 # ضع ID القناة الهدف
+WORD_TO_REMOVE = "@Cointelegraph"  # الكلمة المطلوب إزالتها
 
 app = Flask(__name__)
 
-@app.route("/")
-def index():
+@bot.message_handler(content_types=['text'])
+def forward_message(message):
+    """يقوم بإعادة توجيه الرسائل بعد تعديلها"""
+    if message.chat.id == SOURCE_CHANNEL:
+        modified_text = message.text.replace(WORD_TO_REMOVE, "")
+        bot.send_message(TARGET_CHANNEL, modified_text)
+
+@app.route("/", methods=["GET"])
+def home():
     return "Bot is running!"
 
+@app.route(f"/{TOKEN}", methods=["POST"])
+def receive_update():
+    """يستقبل التحديثات من Webhook"""
+    json_str = request.get_data().decode("UTF-8")
+    update = telebot.types.Update.de_json(json_str)
+    bot.process_new_updates([update])
+    return "OK", 200
+
 if __name__ == "__main__":
-    # الحصول على رقم المنفذ من متغير البيئة، وإذا لم يكن موجودًا نستخدم 5000
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    bot.remove_webhook()
+    bot.set_webhook(url=f"https://YOUR_VERCEL_PROJECT.vercel.app/{TOKEN}")  # ضع رابط Vercel هنا
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
