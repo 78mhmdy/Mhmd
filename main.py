@@ -12,8 +12,8 @@ API_HASH = 'a9308e99598c9eee9889a1badf2ddd2f'
 PHONE_NUMBER = '+971569803058'
 
 # Channel usernames (with or without @)
-SOURCE_CHANNEL = '@cointelegraph'
-TARGET_CHANNEL = '@crypto_N4'
+SOURCE_CHANNEL = '@mahmood2794'
+TARGET_CHANNEL = '@mhmd2704'
 
 # Initialize the client
 client = TelegramClient('session_name', API_ID, API_HASH)
